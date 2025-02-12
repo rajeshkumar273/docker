@@ -1,0 +1,582 @@
+Day 1:
+
+Docker Hub 
+Amazon Elastic Container Registry (ECR):
+Google Container Registry (GCR):
+Azure Container Registry (ACR):
+GitHub Container Registry (GHCR):
+
+Docker Basic commands
+Basic
+•	docker version
+•	docker -v 
+•	docker info
+•	docker --help
+
+————————————
+Images
+docker images                        To list the images
+docker images -q                     To list the images
+docker pull                          To pull tha image
+docker rmi                           To remove one or more iamges
+docker rmi $(docker images -q)       To remove all images
+
+————————————
+Containers
+: docker ps                                                 shows only running containers(use -a for show all 
+: docker ps -a                                              shows all containers
+
+Creating a container for centos image
+1.	docker pull centos
+2.	docker container create -it centos
+3.	docker container create --name x-centos -it centos
+4.	docker start 78fe27c48514<containe id>
+5.	docker start x-centos
+6.	docker exec -it <container id/name> /bin/bash
+7.	docker exec -it  <container id/name> bash
+	docker exec -it  a-centos bash
+8.	docker stop a-centos
+9.	docker stop <container id/name>
+Docker container for nginx:
+docker pull nginx
+docker container create --name b-nginx -p 1111:80 -it nginx 
+docker start b-nginx
+docker exec -it b-nginx bash
+echo "<h1>Hello A-NgInx Server </h1>" > /usr/share/nginx/html/index.html
+localhost:1111
+docker stop b-nginx
+docker rm b-nginx
+docker rmi <imageid>
+
+docker run -it --name b-nginx -p 1111:80 -it nginx 
+docker run -it --name c-nginx -p 2222:80 -it nginx 
+Removing image and containers:
+Containers:
+docker rm container id/name>   removes container
+docker rm $(docker ps -a -q)       Removes all containers
+docker rm -f $(docker ps -a -q)   	force removed 
+Images:
+docker rmi <image id> Removes an image
+docker rmi $(docker images -q) Removes all images
+
+docker login <registry_url>
+docker pull <registry_url>/<image_name>:<tag>
+docker tag <local_image>:<tag> <registry_url>/<image_name>:<tag>
+docker run --name b-centos -it centos 
+
+Day 2:
+Docker run:
+
+docker run <image-name>  create a container from image (first time used to container)
+: docker run -d <image-name>                                create a container from image in detached mode
+: docker run -it <image-name> bash                          create a container from image in interactive mode
+: docker start -i <container-name>                          To start the stoped container
+: docker stop <container-name>                              To stop running container
+: docker logs <container-name>                              To  logs of container
+: docker exec -it <container-name> bash                     To interact with container
+:docker run --name a-centos -it centos bash  
+docker run --name a-nginx -it nginx bash          -->    container will not be removed on exit, if image is not present it will pull the image and create container.
+:docker start -i a-centos
+
+:docker run --name b-centos --rm -it centos bash        --> 
+
+Port forwarding in Docker, also known as port mapping, allows you to expose network ports from your Docker containers to the host system or to the external network. This enables you to access services running inside containers from outside the container environment.
+
+docker run -p host_port:container_port image_name
+docker run -p 1111:80 nginx
+This command starts a container using the Nginx image and forwards requests from port 1111 on the host to port 80 inside the container.
+
+Nginx container
+Docker run -it –name a-nginx -p 1111:80 nginx bash
+Docker start a-nginx
+docker exec -it a-nginx bash 
+echo "<h1>Hello A-NgInx Server </h1>" > /usr/share/nginx/html/index.html
+
+MySQL Container
+================
+docker run --name p-mysql -e MYSQL_ROOT_PASSWORD=manisha -p 3232:3306 -d mysql:5.6
+docker logs p-mysql
+docker exec -it p-mysql bash
+#mysql -uroot -pmanisha
+mysql> show databases
+
+Day 3
+docker network --help
+docker network ls
+create 2 containers 
+docker run --name a-centos -it centos
+docker run --name b-centos -it centos
+docker ps -a
+docker start a-centos
+docker start b-centos
+docker inspect bridge
+
+communicate between containers.
+apt-get update -y
+apt-get install -y iputils-ping
+docker exec -it a-centos bash
+# ping 172.17.0.2(ip of b-centos)
+
+custom default bridge network
+==============================
+docker network create demo-network  -->default will create bridge network
+docker network create demo-network 
+docker run --name c-centos --network demo-network -it centos bash 
+docker run --name d-centos --network demo-network -it centos bash
+
+docker start c-centos d-centos
+docker ps --shows all 4 conta
+docker  network inspect demo-network--->(c,d)
+docker network inspect ---->(a,b) 172.17 is default
+
+
+docker exec --it c-centos bash
+ping d-centos  -->will able to communicate with ip and container name
+
+
+docker network disconnect demo-network  c-centos
+$ docker network connect n1 c-centos;
+
+to install ping in docker
+
+apt-get update -y
+apt-get install -y iputils-ping
+
+
+To add existing container we use connect command, one container we can add to multiple networks.
+docker network connect demo-network a-centos
+
+Step 1 — Creating an Independent Volume
+docker volume create mydata
+
+Step 2---list of all the volumes created and their driver
+docker volume ls
+
+step 3 ---Get details of the volume
+docker volume inspect mydata
+
+Step 4: removing volumes
+docker volume rm mydata
+
+Demo
+docker run -u 0 --name MyJenkins4 -v mydata:/data -p 3333:8080 -p 50004:50000  -d jenkins/jenkins
+docker run -u 0 --name MyJenkins2 -v mydata:/var/jenkins_home -p 9094:8080 -p 60000:50000 jenkins/jenkins
+
+docker volume create mydata
+docker run -it --name a_ubuntu -v mydata:/data ubuntu
+touch test.txt
+echo "hello">test.txt
+echo "all">> test.txt
+cat /data/test.txt
+
+docker run -it --name b_ubuntu -v mydata:/data ubuntu
+cat /data/test.txt
+
+
+
+Day 4:
+docker run --name p-apache1 -d -p 9999:80 httpd 
+
+docker exec -it p-apache1  bash
+
+root@83d01abbb8ae:/usr/local/apache2# echo  "<h1>Hello Welcome To Custom Apache Image</h1>" >  /usr/local/apache2/htdocs/index.html
+
+docker commit -m "Index File Content Changed" -a "Manisha Mane" p-apache1 manishaatos/apacheimage1:1.1 (image name)
+
+docker images
+
+docker commit -m "Index File Content Changed" -a "Manisha Mane" a-nginxdemo1 manishaatos/nginxdemoimage:1.1 
+
+(image name)
+
+docker run --name p-apache2 -p 1111:80 -d  manishaatos/apacheimage1:1.1
+
+docker run --name a-nginx -p 2222:80 -d  manishaatos/nginxdemoimage:1.1 
+
+Push Image to Docker hub
+Docker login
+docker push manishaatos/apacheimage1:1.1
+docker push manishaatos/nginxdemoimage:1.1 
+
+docker run --name b-apache -p 4545:80 -d manishaatos/my-apache-image:1.1
+
+docker run --name c-nginx -p 2222:80 -d manishaatos/nginxdemoimage:1.1
+
+Dockerfile
+======================
+FROM           :Base Image    
+MAINTAINER     :Author Name
+ENV            :Environment variable
+ADD            :ADD the files while buiding the image
+RUN            :To install libraries/packages (executed while building the image)
+ENTRYPOINT     :Executed at run time and we can not override the commands
+CMD            :Executed at run time and we can override by passing command line argument
+
+Java Image
+=============
+# Use a specific version of OpenJDK
+FROM openjdk
+# Set the working directory
+WORKDIR /Javaimage
+COPY . /Javaimage
+# Compile the Java program
+RUN javac Sample.java
+# Set the default command to run the Java program
+CMD ["java","Sample"]
+
+docker build -t myjavaapp . (. is for current working directory)
+
+ubuntu images
+===============
+FROM ubuntu
+MAINTAINER Manisha Mane <pimplemp@rediffmail.com>
+RUN apt-get update
+
+CMD ["echo", "Hello World..! from my first docker iamge1"]
+CMD ["echo", "Hello World..! from my first docker iamge2"]
+CMD ["echo", "Hello World..! from my first docker iamge3"]
+CMD ["echo", "Hello World..! from my first docker iamge4"]
+
+docker build -t myubuntu .
+
+
+docker run myubuntue echo HelloWorld    
+
+apt-get update --To update the package list and upgrade installed packages on an Ubuntu system
+
+apt-get upgrade -- Upgrade installed packages: After updating the package list, you can upgrade the installed packages to their latest versions with:
+apt-get dist-upgrade :Full system upgrade (optional): This command will upgrade the system, including removing obsolete packages.
+
+bash
+Copy code
+sudo apt-get upgrade
+
+Difference between CMD and Entrypoint
+======================================
+FROM ubuntu:20.04
+ENTRYPOINT ["echo", "Hello"]
+
+docker build -t my-hello-image .
+
+docker run my-hello-image World 
+
+•This ENTRYPOINT will always run the echo Hello command, and if you run docker run myimage World, it will append the argument, resulting in echo Hello World
+
+You can combine ENTRYPOINT and CMD where ENTRYPOINT defines the base command and CMD provides default arguments that can be overridden
+
+FROM ubuntu:20.04
+ENTRYPOINT ["echo"]
+CMD ["Hello World"]
+•If you run docker run myimage, it will execute echo Hello World.
+•If you run docker run myimage Hi, it will override CMD and execute echo Hi.
+
+
+Docker file for MYSQL
+=======================
+# Derived from official mysql image (our base image)
+ 
+FROM MySQL:56
+# Add a database
+ENV MYSQL_DATABASE company
+ENV MYSQL_ROOT_PASSWORD admin
+ENV MYSQL_USER manisha
+ENV MYSQL_PASSWORD manisha
+# Add the content of the sql-scripts/ directory to your image
+# All scripts in docker-entrypoint-initdb.d/ are automatically
+# executed during container startup
+ADD script.sql /docker-entrypoint-initdb.d/
+ 
+ 
+script.sql
+===========
+use company;
+create table employee(id int primary key,name text,salary double);
+insert into employee values(101,'RAM',10000.00);
+insert into employee values(102,'RAHIM',20000.00);
+insert into employee values(103,'DAVID',30000.00);
+insert into employee values(104,'Manisha',40000.00);
+ 
+ 
+To build image
+===============
+docker build -t manishaatos/p-2020-mysql:1.1 .
+ 
+To push image
+===============
+docker push manishaatos/p-2020-mysql:1.1
+ 
+To create container
+===================
+ 
+docker run --name a-mysql -d manishaatos/p-2020-mysql:1.1
+ 
+ 
+To go inside container
+======================
+docker exec -it a-mysql bash
+ 
+ 
+root@12344 #  mysql -upradeep -ppradeep or mysql -uroot -padmin
+ 
+ 
+mysql>show databases;
+mysql>use comapny;
+mysql>select * from employee;
+
+centos example
+FROM centos
+RUN useradd customuser
+USER customuser
+then 
+ 
+$ docker build -t mycentos .
+$ docker images
+REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+mycentos     latest    ea2b49ddd472   25 seconds ago   232MB
+..
+$ docker run --name c-mycentos -it mycentos bash
+[customuser@7492f297bbcf /]$ w
+08:05:44 up 23 days,  6:24,  0 users,  load average: 16.10, 52.55, 80.82
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+[customuser@7492f297bbcf /]$ whoami
+customuser
+
+ 
+ 
+
+Docker push/pull options
+===========================
+PUSH
+1.	--all-tags, -a:
+o	Push all image tags associated with the image name.
+o	Useful when an image has multiple tags, and you want to push all of them at once.
+o	Example:
+bash
+Copy code
+docker push --all-tags myrepo/myimage
+2.	--disable-content-trust:
+o	Skip image signature verification when pushing an image.
+o	By default, content trust is enabled, and it verifies the signatures of images.
+o	Example:
+bash
+Copy code
+docker push --disable-content-trust myrepo/myimage
+3.	--quiet, -q:
+o	Suppress verbose output from the push command.
+o	This option reduces the amount of information printed to the console while pushing.
+o	Example:
+bash
+Copy code
+docker push -q myrepo/myimage
+
+PULL
+1.	--all-tags, -a:
+o	Pull all image tags associated with the image name.
+o	When using this option, Docker will download all tags of the specified image.
+o	Example:
+bash
+Copy code
+docker pull --all-tags myrepo/myimage
+2.	--disable-content-trust:
+o	Skip image signature verification when pulling an image.
+o	Example:
+bash
+Copy code
+docker pull --disable-content-trust myrepo/myimage
+3.	--quiet, -q:
+o	Suppress verbose output from the pull command.
+o	This is useful if you want to reduce the amount of information printed during the image download.
+o	Example:
+bash
+Copy code
+docker pull -q myrepo/myimage
+4.	--platform:
+o	Specify the platform to pull the image for a specific architecture (e.g., linux/amd64, linux/arm64).
+o	Example:
+bash
+Copy code
+docker pull --platform linux/arm64 myrepo/myimage
+
+
+Key Differences:
+Dockerfile method: More reproducible and maintainable, especially for complex changes. You have a script (Dockerfile) that defines exactly how the new image is built.
+
+docker commit method: Useful for quick, one-off modifications but harder to track or reproduce, since the changes are made interactively.
+Day 5
+======
+Simple Docker Stack Example
+=================================
+Let’s create a simple stack that consists of two services: a web server using Nginx and a database using MySQL.
+
+Step 1: Enable Docker Swarm Mode
+If you haven't already initialized Swarm, do it with:
+
+
+docker swarm init --advertise-addr=<ip>
+or 
+docker swarm init
+Step 2: Create a Docker Compose File
+Create a file named docker-compose.yml that defines the stack. Here’s a simple example:
+
+yaml
+Copy code
+version: '3.8'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    networks:
+      - my_network
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: mydatabase
+    networks:
+      - my_network
+
+networks:
+  my_network:
+Explanation of the docker-compose.yml File
+Version: Specifies the version of the Docker Compose file format.
+Services: Defines the containers that will be deployed.
+web: The Nginx web server service.
+image: Specifies the Docker image to use.
+ports: Maps port 8080 on the host to port 80 in the container.
+networks: Connects the service to a defined network.
+db: The MySQL database service.
+environment: Sets environment variables for the MySQL root password and database name.
+networks: Connects the service to the same network.
+Networks: Defines a custom network called my_network for service communication.
+Step 3: Deploy the Stack
+Run the following command to deploy the stack:
+
+docker stack deploy -c docker-compose.yml my_stack
+-c docker-compose.yml: Specifies the Compose file to use.
+my_stack: The name of the stack.
+Step 4: Verify the Stack Deployment
+You can check the status of the stack and its services using:
+
+
+docker stack services my_stack
+This command will show you the running services, replicas, and ports.
+
+Step 5: Access the Web Application
+Once the stack is running, you can access the Nginx web server by opening a web browser and navigating to:
+
+http://localhost:8080
+You should see the default Nginx welcome page.
+
+docker service  scale my_stack_web=3
+
+Step 6: Remove the Stack
+To remove the stack when you’re done testing, use the following command:
+
+
+docker stack rm my_stack
+Summary
+Using Docker Stack allows you to easily manage multi-container applications in a Swarm environment. This example demonstrates how to define a simple stack with an Nginx web server and a MySQL database, showcasing the benefits of using Docker Compose for configuration and deployment.
+The main difference between Docker Stack and Docker Compose lies in their intended use cases and how they are deployed:
+
+1. Intended Use:
+Docker Compose vs Docker Stack
+==============================
+Docker Compose:
+
+Use case: Primarily used for defining and running multi-container applications on a single machine (non-clustered).
+Environment: Ideal for local development, testing, and small-scale deployments.
+Usage: You define your services, networks, and volumes in a docker-compose.yml file, and then use docker-compose commands to build, start, and manage the services.
+Docker Stack:
+
+Use case: Specifically designed for Docker Swarm mode, which is Docker's native clustering and orchestration solution. It is used for deploying and managing multi-container applications across multiple Docker hosts in a Swarm cluster.
+Environment: Ideal for production deployments in Docker Swarm clusters (large-scale, distributed systems).
+Usage: You define the services and their configurations in a docker-compose.yml file (similar to Docker Compose), but you deploy the stack to a Swarm cluster using docker stack commands.
+2. Cluster Support:
+Docker Compose:
+Does not support clustering or distributed environments.
+It operates on a single Docker host.
+Docker Stack:
+Specifically designed to work with Docker Swarm and can deploy to a multi-node cluster of Docker hosts.
+It allows you to manage services across multiple machines in a Docker Swarm cluster.
+
+
+step 1:enable docker swarm at 192.168.0.11 (swarm node)
+docker swarm init --advertise-addr=<ip>
+
+step 2 :add other nodes to docker swarm 
+docker swarm join-token worker -- to get the token id
+
+docker swarm join --token SWMTKN-1-52pv2bec08tk7k3915qoxroclmksoesa1mmo8mpzcdun641ok3-ckj5b86q4kgu7uc5sb9mptkjr 192.168.0.11:2377 -->command to join the swarm with token id
+
+step 3:
+docker node ls 
+
+step 4:
+docker network ls
+
+step 5: create a service 
+
+docker service ls
+docker service create --name p-nginx --replicas=6 -p 4444:80 nginx
+docker service --help
+docker service ps p-nginx  --> to inspect the service
+
+step 6: scaling 
+docker service scale p-nginx=3  9 
+docker service ps p-nginx
+docker service rm my_service
+
+to get back the token
+docker swarm join-token worker
+
+docker swarm join --token SWMTKN-1-1gesicth4n8vru4rxl8ydrn8pxr59okwr27payr7z77la328cl-2o71yetmigk1g4ykvixxfjbq 192.168.0.13:2377
+
+docker swarm join --token SWMTKN-1-1gesicth4n8vru4rxl8ydrn8pxr59okwr27payr7z77la328cl-2o71yetmigk1g4ykvixxfjbq 192.168.0.13:2377
+
+QB
+====
+when we create a container for application then does what os is included as a part of container along with application and dependencies??
+
+When you create a container for an application, the operating system (OS) included in the container is a lightweight version of the operating system specified in the base image you use to build the container. Here's how it works:
+
+1. Base Image and OS Layer
+Every container starts from a base image, which determines the operating system environment.
+The base image could be a minimal OS like Alpine Linux, Ubuntu, Debian, or Windows Server Core, depending on your application's requirements.
+For example, if you use a node:alpine image, the OS is Alpine Linux—a small and lightweight Linux distribution optimized for containers.
+2. Lightweight OS
+Containers typically include only the parts of the OS necessary to run the application and its dependencies.
+Unlike virtual machines, containers don’t run a full OS. Instead, they share the kernel of the host operating system.
+3. Key Points About the OS in a Container
+The OS in the container is not a full operating system. It's just enough to provide:
+System libraries.
+Binaries.
+Runtime needed for the application.
+Containers are designed to be lightweight and avoid unnecessary overhead.
+4. Host OS and Container Compatibility
+The container uses the host OS kernel for system-level operations.
+If you run a Linux-based container on a Windows host, tools like WSL (Windows Subsystem for Linux) or virtualization might be involved.
+5. Dependencies in the Container
+Along with the application, you include:
+Runtime dependencies (e.g., JRE for Java apps).
+Libraries and tools required for your application to function.
+These dependencies are added in the layers of the Docker image during the build process.
+Example:
+If you write a Dockerfile for a Spring Boot application, it might look like this:
+
+dockerfile
+Copy code
+FROM openjdk:17-jdk-slim
+COPY target/myapp.jar /app/myapp.jar
+CMD ["java", "-jar", "/app/myapp.jar"]
+Base image (openjdk:17-jdk-slim): Provides a minimal Linux OS (Debian-based) and the Java runtime.
+The OS is not complete but includes just enough to run Java and system-level commands.
+Benefits:
+Efficiency: Containers are smaller and start faster than virtual machines.
+Portability: The container environment is consistent across different systems.
+Let me know if you'd like further explanation or examples!
+
+
+
+
